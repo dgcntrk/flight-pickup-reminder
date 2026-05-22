@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flight-pickup-reminder"
+version = "0.1.0"
+description = "Flight-aware pickup reminder service with route timing, calls, and photo proof checks."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+keywords = ["flight", "reminders", "twilio", "telegram", "fastapi"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: FastAPI",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Communications :: Telephony",
+]
+dependencies = [
+  "apscheduler>=3.10,<4",
+  "fastapi>=0.110,<1",
+  "openai>=1.93,<2",
+  "pillow>=10,<12",
+  "pydantic>=2.7,<3",
+  "python-dotenv>=1,<2",
+  "python-multipart>=0.0.9,<1",
+  "requests>=2.31,<3",
+  "twilio>=9,<10",
+  "urllib3<2",
+  "uvicorn[standard]>=0.29,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

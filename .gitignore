@@ -1,0 +1,30 @@
+# Local secrets and environment overrides
+.env
+.env.local
+.env.*.local
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Runtime state, proof media, and tunnel logs
+data/*.json
+data/*.json.*.tmp
+data/proofs/
+data/mock-proofs/
+run/
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
