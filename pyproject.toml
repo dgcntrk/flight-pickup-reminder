@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "flight-pickup-reminder"
 version = "0.1.0"
-description = "Flight-aware pickup reminder service with route timing, calls, and photo proof checks."
+description = "MCP-compatible flight pickup reminder service with route timing, calls, and proof checks."
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.9"
-keywords = ["flight", "reminders", "twilio", "telegram", "fastapi"]
+requires-python = ">=3.10"
+keywords = ["flight", "reminders", "twilio", "telegram", "fastapi", "mcp"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Framework :: FastAPI",
@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
   "apscheduler>=3.10,<4",
   "fastapi>=0.110,<1",
+  "mcp[cli]>=1.27,<2",
   "openai>=1.93,<2",
   "pillow>=10,<12",
   "pydantic>=2.7,<3",
@@ -33,6 +34,10 @@ dependencies = [
   "urllib3<2",
   "uvicorn[standard]>=0.29,<1",
 ]
+
+[project.scripts]
+flight-pickup-reminder = "flight_pickup_reminder.api:run"
+flight-pickup-reminder-mcp = "flight_pickup_reminder.mcp_server:main"
 
 [project.optional-dependencies]
 dev = [

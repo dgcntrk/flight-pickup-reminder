@@ -1,6 +1,6 @@
 # Flight Pickup Reminder
 
-Flight Pickup Reminder is a small FastAPI service that calculates when a driver should leave for an airport pickup, then escalates reminders until accepted proof arrives.
+Flight Pickup Reminder is a small FastAPI and MCP-compatible service that calculates when a driver should leave for an airport pickup, then escalates reminders until accepted proof arrives.
 
 It combines flight ETA, traffic-aware drive time, outbound calls, Telegram live-location proof, optional photo proof, and an auditable state log. The default configuration is dry-run safe: it will not place calls unless `CALLING_ENABLED=true` and live Twilio credentials are configured.
 
@@ -29,6 +29,7 @@ Once the call window opens, the service alternates through configured recipients
 - Uses OpenAI vision for optional photo proof.
 - Supports `STOP` by SMS to opt out immediately.
 - Provides `/status`, `/config-check`, `/tick`, and mock endpoints for rehearsal.
+- Exposes MCP tools/resources so an AI agent can check readiness, preview the leave plan, and run safe dry-run ticks.
 
 ## Safety And Consent
 
@@ -40,8 +41,10 @@ See [SECURITY.md](SECURITY.md) before running this with real people or real cred
 
 ## Setup
 
+Requires Python 3.10 or newer.
+
 ```sh
-python3 -m venv .venv
+python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
@@ -90,6 +93,53 @@ Trigger one manual poll:
 
 ```sh
 curl -X POST http://127.0.0.1:8000/tick
+```
+
+## MCP Agent Integration
+
+This project includes an MCP server, so compatible agents can operate it through tools instead of raw HTTP calls.
+
+Install the project, then run the MCP server over stdio:
+
+```sh
+. .venv/bin/activate
+flight-pickup-reminder-mcp
+```
+
+Example MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "flight-pickup-reminder": {
+      "command": "/ABSOLUTE/PATH/TO/.venv/bin/flight-pickup-reminder-mcp",
+      "env": {
+        "ENV_FILE": "/ABSOLUTE/PATH/TO/.env"
+      }
+    }
+  }
+}
+```
+
+The MCP server exposes:
+
+- `check_pickup_readiness`: inspect missing config and safety warnings.
+- `preview_pickup_plan`: compute the latest `leave_by` and `call_start_at` without placing calls.
+- `get_pickup_status`: read current state, redacted by default.
+- `run_pickup_tick`: run one tick; live calls are forced off unless `allow_live_calls=true`.
+- `reset_pickup_mock_state`: reset mock state when `MOCK_ENABLED=true`.
+- `record_pickup_mock_proof`: accept or reject mock proof when `MOCK_ENABLED=true`.
+
+You can ask your agent:
+
+```text
+Use the flight-pickup-reminder MCP server to check readiness and preview when the driver needs to leave. Do not place live calls unless I explicitly confirm.
+```
+
+For mock rehearsal:
+
+```text
+Use flight-pickup-reminder to reset the mock state, run a tick at 2026-05-16T16:15:00Z, accept mock proof, and confirm that escalation stops.
 ```
 
 ## Test Without Paid APIs
