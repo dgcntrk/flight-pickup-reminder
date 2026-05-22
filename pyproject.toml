@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "flight-pickup-reminder"
+name = "flight-pickup-reminder-mcp"
 version = "0.1.0"
 description = "MCP-compatible flight pickup reminder service with route timing, calls, and proof checks."
 readme = "README.md"
@@ -15,9 +15,9 @@ classifiers = [
   "Framework :: FastAPI",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Communications :: Telephony",
 ]
 dependencies = [
@@ -36,7 +36,7 @@ dependencies = [
 ]
 
 [project.scripts]
-flight-pickup-reminder = "flight_pickup_reminder.api:run"
+flight-pickup-reminder-api = "flight_pickup_reminder.api:run"
 flight-pickup-reminder-mcp = "flight_pickup_reminder.mcp_server:main"
 
 [project.optional-dependencies]

@@ -11,6 +11,16 @@ mcp = FastMCP("Flight Pickup Reminder", json_response=True)
 
 
 @mcp.tool()
+def get_pickup_setup_guide() -> Dict[str, Any]:
+    """
+    Get a first-time setup checklist, env template, and safe agent prompt.
+
+    Use this before asking the user for credentials or running live checks.
+    """
+    return mcp_tools.get_setup_guide()
+
+
+@mcp.tool()
 def get_pickup_status(include_private: bool = False) -> Dict[str, Any]:
     """
     Get current flight pickup reminder state.
@@ -84,12 +94,18 @@ def readiness_resource() -> str:
     return json.dumps(mcp_tools.check_readiness(), indent=2, sort_keys=True)
 
 
+@mcp.resource("flight-pickup://setup-guide")
+def setup_guide_resource() -> str:
+    """First-time setup guide and env template as JSON."""
+    return json.dumps(mcp_tools.get_setup_guide(), indent=2, sort_keys=True)
+
+
 @mcp.prompt()
 def pickup_operator_brief(goal: str = "Check whether the pickup reminder is ready") -> str:
     """Create an agent prompt for operating the pickup reminder safely."""
     return (
         "You are helping operate Flight Pickup Reminder. Start by calling "
-        "`check_pickup_readiness`, then `preview_pickup_plan`, then "
+        "`get_pickup_setup_guide`, then `check_pickup_readiness`, then `preview_pickup_plan`, then "
         "`get_pickup_status`. Do not call `run_pickup_tick` with "
         "`allow_live_calls=true` unless the user explicitly asks you to place "
         "real calls. User goal: "

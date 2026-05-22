@@ -1,5 +1,7 @@
 # Flight Pickup Reminder
 
+<!-- mcp-name: io.github.dgcntrk/flight-pickup-reminder -->
+
 Flight Pickup Reminder is a small FastAPI and MCP-compatible service that calculates when a driver should leave for an airport pickup, then escalates reminders until accepted proof arrives.
 
 It combines flight ETA, traffic-aware drive time, outbound calls, Telegram live-location proof, optional photo proof, and an auditable state log. The default configuration is dry-run safe: it will not place calls unless `CALLING_ENABLED=true` and live Twilio credentials are configured.
@@ -99,6 +101,26 @@ curl -X POST http://127.0.0.1:8000/tick
 
 This project includes an MCP server, so compatible agents can operate it through tools instead of raw HTTP calls.
 
+Once the package is published to PyPI, the one-line Claude Code install is:
+
+```sh
+claude mcp add --transport stdio flight-pickup-reminder -- uvx flight-pickup-reminder-mcp
+```
+
+Until then, install directly from GitHub:
+
+```sh
+claude mcp add --transport stdio flight-pickup-reminder -- uvx --from git+https://github.com/dgcntrk/flight-pickup-reminder flight-pickup-reminder-mcp
+```
+
+Then ask your agent:
+
+```text
+Use the flight-pickup-reminder MCP server to show me the setup checklist, check readiness, and preview the pickup plan. Do not place live calls unless I explicitly confirm.
+```
+
+The first tool the agent should call is `get_pickup_setup_guide`. It returns the required accounts, safe setup order, current readiness report, and a starter `.env` template.
+
 Install the project, then run the MCP server over stdio:
 
 ```sh
@@ -123,6 +145,7 @@ Example MCP client configuration:
 
 The MCP server exposes:
 
+- `get_pickup_setup_guide`: first-time setup checklist, service list, safe defaults, and `.env` template.
 - `check_pickup_readiness`: inspect missing config and safety warnings.
 - `preview_pickup_plan`: compute the latest `leave_by` and `call_start_at` without placing calls.
 - `get_pickup_status`: read current state, redacted by default.
@@ -130,7 +153,7 @@ The MCP server exposes:
 - `reset_pickup_mock_state`: reset mock state when `MOCK_ENABLED=true`.
 - `record_pickup_mock_proof`: accept or reject mock proof when `MOCK_ENABLED=true`.
 
-You can ask your agent:
+You can also ask your agent:
 
 ```text
 Use the flight-pickup-reminder MCP server to check readiness and preview when the driver needs to leave. Do not place live calls unless I explicitly confirm.
@@ -177,6 +200,28 @@ The app uses `DEFAULT_DRIVE_MINUTES` and logs dry-run call attempts into `data/m
 - [API credential guide](API_CREDENTIALS_GUIDE.md)
 - [Example runbook](MORNING_RUNBOOK.md)
 - [Security policy](SECURITY.md)
+
+## Publishing
+
+The MCP Registry is a metadata registry, not a package host. This project is set up to publish code to PyPI as `flight-pickup-reminder-mcp`, then publish `server.json` to the MCP Registry.
+
+To enable release publishing:
+
+1. In PyPI, create a pending trusted publisher for:
+   - PyPI project: `flight-pickup-reminder-mcp`
+   - Owner: `dgcntrk`
+   - Repository: `flight-pickup-reminder`
+   - Workflow: `publish.yml`
+   - Environment: `pypi`
+2. Create a GitHub environment named `pypi`.
+3. Push a release tag, for example:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The publish workflow builds the package, publishes to PyPI through trusted publishing, then publishes MCP metadata to the official MCP Registry.
 
 ## Tests
 

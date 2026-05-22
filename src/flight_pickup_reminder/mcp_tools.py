@@ -28,6 +28,68 @@ PRIVATE_KEYS = {
 }
 
 
+ENV_TEMPLATE = """APP_TIMEZONE=America/Vancouver
+HOST=127.0.0.1
+PORT=8000
+PUBLIC_BASE_URL=
+MOCK_ENABLED=false
+
+FLIGHT_PROVIDER=flightaware
+FLIGHTAWARE_API_KEY=
+FLIGHT_IDENT=
+FLIGHT_ORIGIN_ICAO=
+FLIGHT_DESTINATION_ICAO=
+FLIGHT_LOCAL_DATE=YYYY-MM-DD
+MANUAL_ARRIVAL_ISO=
+
+GOOGLE_MAPS_API_KEY=
+FRIENDS_ADDRESS=YOUR EXACT PICKUP ADDRESS
+AIRPORT_ADDRESS=YOUR EXACT AIRPORT ADDRESS
+DEFAULT_DRIVE_MINUTES=35
+
+AIRPORT_ARRIVAL_BUFFER_MINUTES=5
+CALL_LEAD_MINUTES=5
+POLL_SECONDS=60
+CALL_INTERVAL_SECONDS=30
+MAX_CALL_ATTEMPTS=12
+
+CALLING_ENABLED=false
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_API_KEY_SID=
+TWILIO_API_KEY_SECRET=
+TWILIO_FROM_NUMBER=
+RECIPIENT_NUMBERS=
+TWILIO_VALIDATE_SIGNATURE=true
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_ALLOWED_USER_IDS=
+TELEGRAM_ALLOW_ANY_UNTIL=
+TELEGRAM_POLLING_ENABLED=true
+TELEGRAM_POLL_SECONDS=5
+TELEGRAM_WEBHOOK_SECRET=
+
+PROOF_ACCEPT_TELEGRAM_LOCATION=true
+PROOF_REQUIRE_TELEGRAM_LIVE_LOCATION=true
+PROOF_REQUIRE_TELEGRAM_MOVEMENT=false
+TELEGRAM_LOCATION_MIN_MOVEMENT_METERS=25
+PROOF_REQUIRE_TELEGRAM_PICKUP_AREA=false
+TELEGRAM_PICKUP_LATITUDE=
+TELEGRAM_PICKUP_LONGITUDE=
+TELEGRAM_PICKUP_RADIUS_METERS=15000
+TELEGRAM_LOCATION_MAX_AGE_MINUTES=10
+TELEGRAM_LOCATION_MAX_ACCURACY_METERS=1500
+
+OPENAI_API_KEY=
+OPENAI_VISION_MODEL=gpt-4.1-mini
+PROOF_MOCK_MODE=off
+PROOF_REQUIRE_IPHONE_EXIF=true
+PROOF_MAX_AGE_MINUTES=20
+PROOF_STORE_DIR=data/proofs
+STATE_PATH=data/state.json
+"""
+
+
 def get_status(include_private: bool = False, settings: Optional[Settings] = None) -> Dict[str, Any]:
     """Return current reminder state, redacted by default for agent context."""
     loaded_settings = settings or load_settings()
@@ -38,6 +100,55 @@ def get_status(include_private: bool = False, settings: Optional[Settings] = Non
 def check_readiness(settings: Optional[Settings] = None) -> Dict[str, Any]:
     """Return live-readiness checks without exposing credential values."""
     return _jsonable(readiness_report(settings or load_settings()))
+
+
+def get_setup_guide(settings: Optional[Settings] = None) -> Dict[str, Any]:
+    """Return setup guidance an agent can use to onboard a first-time user."""
+    loaded_settings = settings or load_settings()
+    report = readiness_report(loaded_settings)
+    return {
+        "summary": (
+            "Flight Pickup Reminder needs flight timing, route timing, recipient consent, "
+            "Twilio calling credentials, and Telegram live-location proof before live use."
+        ),
+        "safe_default": "CALLING_ENABLED=false keeps all calls in dry-run mode until the user explicitly enables live calls.",
+        "one_liner_after_pypi_publish": (
+            "claude mcp add --transport stdio flight-pickup-reminder -- "
+            "uvx flight-pickup-reminder-mcp"
+        ),
+        "one_liner_from_github": (
+            "claude mcp add --transport stdio flight-pickup-reminder -- "
+            "uvx --from git+https://github.com/dgcntrk/flight-pickup-reminder flight-pickup-reminder-mcp"
+        ),
+        "first_agent_prompt": (
+            "Use the flight-pickup-reminder MCP server to show me the setup checklist, "
+            "check readiness, and preview the pickup plan. Do not place live calls unless I explicitly confirm."
+        ),
+        "minimum_live_accounts": [
+            "Twilio account and phone number for calls/SMS",
+            "Telegram bot token and allowed Telegram sender IDs for live-location proof",
+            "Google Maps Platform key with Routes API enabled",
+            "FlightAware AeroAPI key, or MANUAL_ARRIVAL_ISO as a fallback",
+            "Optional OpenAI API key only for photo proof fallback",
+        ],
+        "minimum_user_inputs": [
+            "Exact flight identifier and local flight date",
+            "Exact pickup address and airport address",
+            "Recipient phone numbers in E.164 format",
+            "Explicit consent from every recipient",
+        ],
+        "recommended_order": [
+            "Create a local .env from the template returned by this tool",
+            "Keep CALLING_ENABLED=false",
+            "Run check_pickup_readiness",
+            "Configure Telegram and collect TELEGRAM_ALLOWED_USER_IDS",
+            "Configure Google Routes and either FlightAware or MANUAL_ARRIVAL_ISO",
+            "Run preview_pickup_plan and inspect leave_by/call_start_at",
+            "Enable CALLING_ENABLED=true only after a successful dry run and explicit consent",
+        ],
+        "dotenv_template": ENV_TEMPLATE,
+        "readiness": report,
+    }
 
 
 def preview_reminder_plan(

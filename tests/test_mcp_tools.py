@@ -16,6 +16,15 @@ def test_mcp_status_redacts_private_fields(settings):
     assert status["events"][0]["payload"]["sender_id"] == "[redacted]"
 
 
+def test_mcp_setup_guide_includes_template_and_readiness(settings):
+    guide = mcp_tools.get_setup_guide(settings=settings)
+
+    assert "dotenv_template" in guide
+    assert "CALLING_ENABLED=false" in guide["dotenv_template"]
+    assert "Twilio account" in guide["minimum_live_accounts"][0]
+    assert guide["readiness"]["ready_for_live"] is False
+
+
 def test_mcp_preview_plan_computes_without_calls(settings):
     result = mcp_tools.preview_reminder_plan(settings=settings)
 

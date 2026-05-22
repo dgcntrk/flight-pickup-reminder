@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.dgcntrk/flight-pickup-reminder",
+  "title": "Flight Pickup Reminder",
+  "description": "Agent-safe airport pickup timing, calls, and proof checks.",
+  "websiteUrl": "https://github.com/dgcntrk/flight-pickup-reminder",
+  "repository": {
+    "url": "https://github.com/dgcntrk/flight-pickup-reminder",
+    "source": "github",
+    "id": "1246984464"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "flight-pickup-reminder-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ENV_FILE",
+          "description": "Path to a .env file with flight, route, Twilio, Telegram, and proof settings. If omitted, the server loads .env in the current working directory.",
+          "isRequired": false,
+          "format": "filepath"
+        }
+      ]
+    }
+  ]
+}
